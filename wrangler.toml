@@ -1,0 +1,67 @@
+name = "free-serp-api"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+
+workers_dev = true
+[vars]
+# Authentication toggle. Default OFF: the endpoint answers without a `key`.
+# Flip to "true" in production to require the `key` field (checked against the
+# API_KEYS secret).
+REQUIRE_KEY = "false"
+
+# Maximum number of concurrent outbound GET requests to Bing. Any additional
+# POST requests wait in a FIFO queue (see QUEUE_WAIT_TIMEOUT_MS). 6 = spec.
+BING_MAX_CONCURRENCY = "6"
+
+# Per-Bing-page timeout (milliseconds). On timeout the request fails with
+# 504 upstream_timeout (after one retry on 429/5xx).
+BING_FETCH_TIMEOUT_MS = "8000"
+
+# How long a POST request may wait in the concurrency queue before failing
+# with 504 queue_timeout. 0 = wait indefinitely (not recommended).
+QUEUE_WAIT_TIMEOUT_MS = "10000"
+
+# Request body size limit (bytes).
+MAX_BODY_BYTES = "16384"
+
+# Upper bound for `result_number` (1..100 per the API schema).
+MAX_RESULT_NUMBER = "100"
+
+# Hard cap on Bing pages fetched per request (pagination).
+MAX_PAGES = "10"
+
+# CORS policy: "*" (any origin) or a comma-separated allowlist, e.g.
+# "https://app.example.com,https://docs.example.com".
+ALLOWED_ORIGINS = "*"
+
+# Optional per-IP rate limit (requests/minute, per isolate). 0 = disabled.
+RATE_LIMIT_PER_MINUTE = "0"
+
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+# ---------------------------------------------------------------------------
+# Production environment example — deploy with: wrangler deploy --env production
+# ---------------------------------------------------------------------------
+# [env.production]
+# workers_dev = false
+# routes = [
+#   { pattern = "api.example.com/api/v1/*", zone_name = "example.com" },
+# ]
+#
+# [env.production.vars]
+# REQUIRE_KEY = "true"
+# BING_MAX_CONCURRENCY = "6"
+# ALLOWED_ORIGINS = "https://app.example.com"
+# RATE_LIMIT_PER_MINUTE = "30"
+#
+# [env.production.observability]
+# enabled = true
+
+# ---------------------------------------------------------------------------
+# LOCAL DEVELOPMENT ONLY — never commit real values:
+# ---------------------------------------------------------------------------
+# [unsafe_secrets]
+# API_KEYS = "dev-local-key"
